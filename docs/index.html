@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Binance DepthCache Forensics — supplementary material</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root {
+    --bg: #0f1115;
+    --fg: #e6e6e6;
+    --muted: #8a8f98;
+    --accent: #e74c3c;
+    --link: #ff8a76;
+    --card: #181b22;
+    --border: #2a2e36;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #555;
+      --accent: #c0392b;
+      --link: #b03020;
+      --card: #fff;
+      --border: #e0e0e0;
+    }
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    margin: 0;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  main { max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 1.7rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1.1rem; margin: 2.2rem 0 .6rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  p { margin: .6rem 0; }
+  .lead { color: var(--muted); margin-bottom: 2rem; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ul.cards { list-style: none; padding: 0; margin: 0; display: grid; gap: .6rem; }
+  ul.cards li {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .9rem 1rem;
+  }
+  ul.cards li a.title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: .15rem;
+  }
+  ul.cards li .desc { color: var(--muted); font-size: 14px; }
+  ul.cards li .size { color: var(--muted); font-size: 12px; font-family: ui-monospace, monospace; margin-left: .5rem; }
+  .badge { display: inline-block; padding: .15em .5em; border-radius: 3px; font-size: 11px; background: var(--accent); color: #fff; margin-right: .4em; vertical-align: middle; }
+  footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+  code { font-family: ui-monospace, monospace; background: var(--card); padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Binance DepthCache Forensics</h1>
+<p class="lead">
+  Charts and raw data for the article
+  <em>“Your Binance DepthCache is rotting — here's the proof in 25 hours”</em>.
+  Two DepthCaches, fed by the same WebSocket stream, audited hourly against
+  REST snapshots over 25 hours on BTCUSDT.
+</p>
+
+<h2>Headline</h2>
+<ul class="cards">
+  <li>
+    <a class="title" href="comparison.html"><span class="badge">chart</span>comparison.html</a>
+    <div class="desc">naive vs fixed match% over time, BTC mid on the secondary axis. The single chart that tells the whole story.</div>
+  </li>
+</ul>
+
+<h2>3D scatter — the smoking gun</h2>
+<ul class="cards">
+  <li>
+    <a class="title" href="report_naive.html"><span class="badge">chart</span>report_naive.html<span class="size">78 MB</span></a>
+    <div class="desc">Naive DC, full 3D scatter. X = price, Y = audit hour, Z = log(qty). Asks above the mid plane, bids below. Watch the red orphaned tail grow audit by audit.</div>
+  </li>
+  <li>
+    <a class="title" href="report_fixed.html"><span class="badge">chart</span>report_fixed.html<span class="size">41 MB</span></a>
+    <div class="desc">Fixed DC, same axes. Almost entirely green. The orphaned tail is gone.</div>
+  </li>
+</ul>
+
+<h2>Forensics</h2>
+<ul class="cards">
+  <li>
+    <a class="title" href="distance_naive.html"><span class="badge">chart</span>distance_naive.html<span class="size">6.4 MB</span></a>
+    <div class="desc">Histogram of how far each orphaned level sits from the mid (signed: bid side negative, ask side positive). Per-audit overlay shows the tails getting fatter over time.</div>
+  </li>
+  <li>
+    <a class="title" href="age_naive.html"><span class="badge">chart</span>age_naive.html<span class="size">401 KB</span></a>
+    <div class="desc">For every orphaned level in the final audit: hours since it last appeared in any archived REST snapshot. Bimodal — recent rot vs the “never seen” deep-stream entries.</div>
+  </li>
+  <li>
+    <a class="title" href="volatility_naive.html"><span class="badge">chart</span>volatility_naive.html<span class="size">12 KB</span></a>
+    <div class="desc">Per-window mid-price change vs Δ orphaned. The correlation between market movement and rot is direct.</div>
+  </li>
+</ul>
+
+<h2>Supporting</h2>
+<ul class="cards">
+  <li>
+    <a class="title" href="counts_naive.html"><span class="badge">chart</span>counts_naive.html<span class="size">16 KB</span></a>
+    <div class="desc">Per-audit level counts and match% for the naive DC.</div>
+  </li>
+  <li>
+    <a class="title" href="counts_fixed.html"><span class="badge">chart</span>counts_fixed.html<span class="size">16 KB</span></a>
+    <div class="desc">Same chart for the fixed DC — flat, controlled, unimpressive in the best possible sense.</div>
+  </li>
+  <li>
+    <a class="title" href="volatility_fixed.html"><span class="badge">chart</span>volatility_fixed.html<span class="size">12 KB</span></a>
+    <div class="desc">Volatility vs Δ orphaned for the fixed DC, for symmetry with the naive forensics.</div>
+  </li>
+</ul>
+
+<h2>Raw data</h2>
+<ul class="cards">
+  <li>
+    <a class="title" href="raw_data.tar.gz"><span class="badge">data</span>raw_data.tar.gz<span class="size">7.5 MB</span></a>
+    <div class="desc">All 27 per-audit JSONs (naive + fixed), all 27 archived REST snapshots, both <code>audits.jsonl</code> summary streams, and the full run log. Reproduce or verify any number from the article.</div>
+  </li>
+</ul>
+
+<footer>
+  Generated 2026-04-29.
+  Experiment: <code>BTCUSDT</code> · 25.10 h · 27 audits · 10 WS reconnects (auto-recovered).
+  Built with <code>unicorn-binance-websocket-api</code> 2.12.2, plain Python, Plotly.
+</footer>
+
+</main>
+</body>
+</html>
